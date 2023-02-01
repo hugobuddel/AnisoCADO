@@ -536,7 +536,7 @@ def generateCoordSegments(D, rot):
     # print("Nbre de segments : %d\n" % n)
     # Creation d'un hexagone-segment avec pointe dirigee vers
     # variable <hx> (d'ou le cos() sur hx)
-    th = np.linspace(0, 2 * np.pi, 7)[0:6]
+    th = np.linspace(0, 2 * np.pi, 7)[:6]
     hx = np.cos(th) * pitch / V3
     hy = np.sin(th) * pitch / V3
 
@@ -604,10 +604,7 @@ def getdatatype(truc):
     Returns the data type of a numpy variable, either scalar value or array.
 
     """
-    if np.isscalar(truc):
-        return type(truc)
-    else:
-        return type(truc.flatten()[0])
+    return type(truc) if np.isscalar(truc) else type(truc.flatten()[0])
 
 
 def generateSegmentProperties(attribute, hx, hy, i0, j0, scale, gap, N, D,
@@ -676,37 +673,7 @@ def generateSegmentProperties(attribute, hx, hy, i0, j0, scale, gap, N, D,
     segdiam = np.ceil(hexrad * 2 + 1).astype(int) + 1
 
     n = attribute.shape[0]
-    if n != 3:
-        # attribute is a signel value : either reflectivity, or boolean,
-        # or just piston.
-        if softGap != 0:
-            # Soft gaps
-            # The impact of gaps are modelled using a simple function:
-            # Lorentz, 1/(1+x**2)
-            # The fwhm is always equal to 2 pixels because the gap is supposed
-            # to be "small/invisible/undersampled". The only visible thing is
-            # the width of the impulse response, chosen 2-pixel wide to be
-            # well sampled.
-            # The "depth" is related to the gap width. The integral of a
-            # Lorentzian of 2 pix wide is PI. Integral of a gap of width 'gap'
-            # in pixels is 'gap'.
-            # So the depth equals to gap/scale/np.pi.
-            for i in range(nseg):
-                indx, indy, distedge = fillPolygon(hx[:, i], hy[:, i],
-                                                   i0 - ix0[i], j0 - iy0[i],
-                                                   scale, gap * 0., segdiam,
-                                                   index=1)
-                pupil[indx + ix0[i], indy + iy0[i]] = attribute[i] * (
-                            1. - (gap / scale / np.pi) / (
-                                1 + (distedge / scale) ** 2))
-        else:
-            # Hard gaps
-            for i in range(nseg):
-                indx, indy, distedge = fillPolygon(hx[:, i], hy[:, i],
-                                                   i0 - ix0[i], j0 - iy0[i],
-                                                   scale, gap, segdiam, index=1)
-                pupil[indx + ix0[i], indy + iy0[i]] = attribute[i]
-    else:
+    if n == 3:
         # attribute is [piston, tip, tilt]
         minimap = np.zeros((segdiam, segdiam))
         xmap = np.arange(segdiam) - segdiam / 2
@@ -727,6 +694,33 @@ def generateSegmentProperties(attribute, hx, hy, i0, j0, scale, gap, N, D,
                         factunit * attribute[2, i]) * ymap
             pupil[indx + ix0[i], indy + iy0[i]] = minimap[indx, indy]
 
+    elif softGap != 0:
+        # Soft gaps
+        # The impact of gaps are modelled using a simple function:
+        # Lorentz, 1/(1+x**2)
+        # The fwhm is always equal to 2 pixels because the gap is supposed
+        # to be "small/invisible/undersampled". The only visible thing is
+        # the width of the impulse response, chosen 2-pixel wide to be
+        # well sampled.
+        # The "depth" is related to the gap width. The integral of a
+        # Lorentzian of 2 pix wide is PI. Integral of a gap of width 'gap'
+        # in pixels is 'gap'.
+        # So the depth equals to gap/scale/np.pi.
+        for i in range(nseg):
+            indx, indy, distedge = fillPolygon(hx[:, i], hy[:, i],
+                                               i0 - ix0[i], j0 - iy0[i],
+                                               scale, gap * 0., segdiam,
+                                               index=1)
+            pupil[indx + ix0[i], indy + iy0[i]] = attribute[i] * (
+                        1. - (gap / scale / np.pi) / (
+                            1 + (distedge / scale) ** 2))
+    else:
+        # Hard gaps
+        for i in range(nseg):
+            indx, indy, distedge = fillPolygon(hx[:, i], hy[:, i],
+                                               i0 - ix0[i], j0 - iy0[i],
+                                               scale, gap, segdiam, index=1)
+            pupil[indx + ix0[i], indy + iy0[i]] = attribute[i]
     return pupil
 
 
@@ -744,8 +738,7 @@ def getEeltSegmentNumber():
 
     """
     hx, hy = generateCoordSegments(40., 0.)
-    n = hx.shape[-1]
-    return n
+    return hx.shape[-1]
 
 
 def generateEeltPupilMask(npt, dspider, i0, j0, pixscale, gap, rotdegree,
@@ -909,12 +902,9 @@ def generateEeltPupilPhase(phase, npt, dspider, i0, j0, pixscale, rotdegree,
     # hexagonal mirrors
     hx, hy = generateCoordSegments(D, rot)
 
-    # From the data of hex mirrors, we build the pupil phase image according
-    # to the properties defined by input argument <phase>
-    pup = generateSegmentProperties(phase, hx, hy, i0, j0, pixscale, 0.0, npt,
-                                    D)
-
-    return pup
+    return generateSegmentProperties(
+        phase, hx, hy, i0, j0, pixscale, 0.0, npt, D
+    )
 
 
 """
