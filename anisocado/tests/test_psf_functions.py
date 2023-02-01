@@ -16,9 +16,7 @@ def basic_fv_psf():
               (-n, 0),  (0, 0),  (n, 0),
               (-n, -n), (0, -n), (n, -n)]
     waves = [0.9, 1.1, 1.6, 2.15]
-    hdu = misc.make_simcado_psf_file(coords=coords, wavelengths=waves, N=128)
-
-    return hdu
+    return misc.make_simcado_psf_file(coords=coords, wavelengths=waves, N=128)
 
 
 class TestSimcadoPsfFile:
@@ -61,7 +59,7 @@ class TestFvpsfFileConsistencyChecks:
         if cat_hdu.header["CATTYPE"] == "table":
             assert isinstance(cat_hdu.data, (fits.BinTableHDU, fits.FITS_rec))
 
-        elif basic_fv_psf[ecat].header["CATTYPE"] == "image":
+        elif cat_hdu.header["CATTYPE"] == "image":
             assert isinstance(cat_hdu.data, fits.ImageHDU)
             for key in ["CRVAL1", "CRPIX1", "CDELT1"]:
                 assert key in cat_hdu.header

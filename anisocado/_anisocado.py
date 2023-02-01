@@ -264,7 +264,7 @@ def instantaneous_scao_psf():
     niter = int(np.round(DIT / stepTime))
     psfLE = 0  # psf Long Exposure
     normFactor = np.sum(pup)**2
-    for i in range(niter):
+    for _ in range(niter):
         psfSE = np.fft.fftshift(np.abs(np.fft.fft2(pup * np.exp(1j*ph1)))**2)
         psfSE /= normFactor
         print(psfSE.max())

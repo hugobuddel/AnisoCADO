@@ -156,10 +156,10 @@ class AnalyticalScaoPsf:
         self._wave_m = self.wavelength
         if self.wavelength > 0.1:  # assume its in um
             self._wave_m *= 1e-6
-        
+
         for key in kwargs:
             if key not in self.kwarg_names:
-                warnings.warn("{} not found in self.kwarg_names".format(key))
+                warnings.warn(f"{key} not found in self.kwarg_names")
 
         self.__dict__.update(kwargs)
         if self.seed is not None:
@@ -371,7 +371,7 @@ class AnalyticalScaoPsf:
         niter = int(np.round(dit / stepTime))
         psfLE = 0  # psf Long Exposure
         normFactor = np.sum(self.pup) ** 2
-        for i in range(niter):
+        for _ in range(niter):
             inv_pupil = np.fft.fft2(self.pup * np.exp(1j * ph1))
             psfSE = np.fft.fftshift(np.abs(inv_pupil) ** 2)
             psfSE /= normFactor
@@ -418,7 +418,7 @@ class AnalyticalScaoPsf:
 
         hdr = fits.Header()
         hdr["CDELT1"] = self.pixelSize / 3600.  # because pixelSize is in arcsec
-        hdr["CDELT2"] = self.pixelSize / 3600.  
+        hdr["CDELT2"] = self.pixelSize / 3600.
         hdr["CRVAL1"] = self.x_last / 3600.
         hdr["CRVAL2"] = self.y_last / 3600.
         hdr["CRPIX1"] = w / 2.
@@ -435,13 +435,11 @@ class AnalyticalScaoPsf:
         dic = {key: self.__dict__[key] for key in self.kwarg_names}
         hdr.update(dic)
         hdr.update(kwargs)
-        hdu_psf = fits.ImageHDU(data=self.psf_latest, header=hdr)
-
-        return hdu_psf
+        return fits.ImageHDU(data=self.psf_latest, header=hdr)
 
     def plot_psf(self, which="psf_latest"):
         """Plots a logscale PSF kernel: ["psf_latest", "psf_on_axis"]"""
         plt.imshow(getattr(self, which).T, origin='l', norm=LogNorm())
-        print('Strehl ratio of {} is {}'.format(which, self.psf_latest.max()))
+        print(f'Strehl ratio of {which} is {self.psf_latest.max()}')
 
 

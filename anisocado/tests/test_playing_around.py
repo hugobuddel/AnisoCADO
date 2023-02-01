@@ -32,9 +32,9 @@ class TestMakeStrehlMap:
 
 class TestStrehlRatiosForDifferentSizedKernels:
     def test_how_much_does_the_SR_change_for_kernel_size_increase(self):
-        side_length = [64, 128, 256, 512, 1024]
-        sr = on_axis_strehl_for_kernel_size(side_length, wavelength=2.15)
         if PLOTS:
+            side_length = [64, 128, 256, 512, 1024]
+            sr = on_axis_strehl_for_kernel_size(side_length, wavelength=2.15)
             plt.plot(side_length, sr)
             plt.show()
 
@@ -53,7 +53,7 @@ class TestPsfsAlongXaxis:
 
             if PLOTS:
                 print(wave, np.sum(psf._kernel_sum))
-                plt.plot(x.flatten(), sr, label="{} um".format(wave))
+                plt.plot(x.flatten(), sr, label=f"{wave} um")
 
         if PLOTS:
             # plt.semilogy()

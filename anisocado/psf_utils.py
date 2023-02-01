@@ -347,9 +347,7 @@ def hcor(freq, Fe, tret, G, BP, an=True):
     Hret = np.exp(-p*tret)
     Hmir = 1./(1. + 1j*freq/BP)
     Hbo = Hint * Hccd * Hdac * Hret * Hmir
-    Hcor   = 1./abs(1 + Hbo*G)**2
-
-    return Hcor
+    return 1./abs(1 + Hbo*G)**2
 
 
 def convertSpectrum2Dphi(W, uk):
@@ -365,8 +363,7 @@ def convertSpectrum2Dphi(W, uk):
 
     W[0, 0] = 0.0
     W[0, 0] = -np.sum(W)
-    Dphi = 2*np.abs(np.fft.fft2(W)) *  (uk**2)
-    return Dphi
+    return 2*np.abs(np.fft.fft2(W)) *  (uk**2)
 
 
 def fake_generatePupil(N, deadSegments, rotdegree, pixelSize, wavelength, rng=np.random.default_rng()):
@@ -407,10 +404,9 @@ def fake_generatePupil(N, deadSegments, rotdegree, pixelSize, wavelength, rng=np
     pixscale = wavelength / FoV   # expressed in metres
     dspider = 0.53
     gap = 0.02
-    pup = pupil_utils.generateEeltPupilReflectivity(refl, N, dspider, i0, j0,
-                                                    pixscale, gap, rotdegree,
-                                                    softGap=True)
-    return pup
+    return pupil_utils.generateEeltPupilReflectivity(
+        refl, N, dspider, i0, j0, pixscale, gap, rotdegree, softGap=True
+    )
 
 
 def computeEeltOTF(pup):
@@ -476,9 +472,7 @@ def core_generatePsf(Dphi, FTOtel):
     # total FTO
     FTO = np.exp(-0.5*Dphi) * FTOtel
 
-    # PSF
-    psf = np.fft.fftshift( np.fft.fft2(FTO).real )
-    return psf
+    return np.fft.fftshift( np.fft.fft2(FTO).real )
 
 
 def createAdHocScaoPsf(N, pixelSize, wavelengthIR, rotdegree, r0Vis, nmRms):
@@ -568,9 +562,7 @@ def airmassImpact(r0_at_zenith, zenith_distance):
     """
 
     z = zenith_distance * np.pi / 180  # the same, in radians
-    r0 = r0_at_zenith * np.cos(z)**(3./5)
-
-    return r0
+    return r0_at_zenith * np.cos(z)**(3./5)
 
 
 def get_atmospheric_turbulence(myProfile='EsoMedian'):
@@ -632,7 +624,7 @@ def get_atmospheric_turbulence(myProfile='EsoMedian'):
         Cn2h = [0.5224, 0.026, 0.0444, 0.116, 0.0989,
                 0.0295, 0.0598, 0.043, 0.06]
 
-    elif myProfile == 'officialEsoMedian' or myProfile == 'EsoMedian' :
+    elif myProfile in ['officialEsoMedian', 'EsoMedian']:
         layerAltitude = [30, 90, 150, 200, 245, 300, 390, 600, 1130, 1880, 2630,
                          3500, 4500, 5500, 6500, 7500, 8500, 9500, 10500, 11500,
                          12500, 13500, 14500, 15500, 16500, 17500, 18500, 19500,

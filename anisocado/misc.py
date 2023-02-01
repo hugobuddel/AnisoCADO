@@ -49,16 +49,16 @@ def make_image_of_psf_grid(filt_name="Ks", wave=2.15, for_joss=True):
             plt.subplot(5, 5, 1+x+5*(4-y))
             plt.imshow(psf_grid[i], origin="l", norm=LogNorm())
             plt.axis("off")
-            plt.title("({}, {})".format((7*x-14), (7*x-14)))
+            plt.title(f"({7 * x - 14}, {7 * x - 14})")
             i += 1
 
     if for_joss:
         plt.tight_layout()
-        path = "../docs/joss_paper/{}-band_psf_grid".format(filt_name)
-        plt.savefig(path+".png", format="png")
-        plt.savefig(path+".pdf", format="pdf")
+        path = f"../docs/joss_paper/{filt_name}-band_psf_grid"
+        plt.savefig(f"{path}.png", format="png")
+        plt.savefig(f"{path}.pdf", format="pdf")
     else:
-        plt.suptitle("{}-band ({}um) SCAO PSFs".format(filt_name, wave))
+        plt.suptitle(f"{filt_name}-band ({wave}um) SCAO PSFs")
 
 
 # make_image_of_psf_grid("Ks", 2.15)
@@ -127,8 +127,7 @@ def make_simcado_psf_file(coords, wavelengths, header_cards=None, **kwargs):
     ext0_dict["ETYPE"] = "FVPSF"
     ext0_dict["ECAT"] = (1, "The extension containing the catalogue data")
     ext0_dict["EDATA"] = (2, "The first extension with real data")
-    ext0_dict.update({"WAVEEXT{}".format(i + 2): w
-                      for i, w in enumerate(wavelengths)})
+    ext0_dict |= {f"WAVEEXT{i + 2}": w for i, w in enumerate(wavelengths)}
 
     pri_hdr = fits.PrimaryHDU()
     pri_hdr.header.update(ext0_dict)
@@ -142,7 +141,7 @@ def make_simcado_psf_file(coords, wavelengths, header_cards=None, **kwargs):
 
     psf_hdus = []
     for wave in wavelengths:
-        print("Making psf cube for {} um".format(wave))
+        print(f"Making psf cube for {wave} um")
         psf = AnalyticalScaoPsf(wavelength=wave, **kwargs)
         kernel_cube = [psf.shift_off_axis(dx, dy) for dx, dy in coords]
 
@@ -153,9 +152,7 @@ def make_simcado_psf_file(coords, wavelengths, header_cards=None, **kwargs):
 
         psf_hdus += [psf_hdu]
 
-    hdulist = fits.HDUList([pri_hdr, cat_hdu] + psf_hdus)
-
-    return hdulist
+    return fits.HDUList([pri_hdr, cat_hdu] + psf_hdus)
 
 
 def field_positions_for_simcado_psf(radii=None, theta=45):
@@ -205,11 +202,11 @@ def make_strehl_map_from_coords(coords):
     x, y = np.array(coords).T
 
     from scipy.interpolate import griddata
-    map = griddata((x, y), np.arange(len(x)),
-                   np.array(np.meshgrid(np.arange(-25, 26),
-                                        np.arange(-25, 26))).T,
-                   method="nearest")
-
-    return map
+    return griddata(
+        (x, y),
+        np.arange(len(x)),
+        np.array(np.meshgrid(np.arange(-25, 26), np.arange(-25, 26))).T,
+        method="nearest",
+    )
 
 
